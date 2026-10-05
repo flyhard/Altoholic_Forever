@@ -9,6 +9,9 @@ local Columns = MVC:GetService("AltoholicUI.TabSummaryColumns")
 local Formatter = MVC:GetService("AltoholicUI.Formatter")
 local Characters = MVC:GetService("AltoholicUI.Characters")
 
+-- Bank tabs only exist since 11.2, WoW Forever still uses bank bags
+local hasBankTabs = (AddonFactory.buildVersion >= 110200)
+
 -- *** Utility functions ***
 local function FormatBagType(link, bagType)
 	link = link or ""
@@ -179,10 +182,16 @@ Columns.RegisterColumn("BankSlots", {
 			for tabID = Enum.BagIndex.CharacterBankTab_1, Enum.BagIndex.CharacterBankTab_6 do
 				-- local slotIndex = i - 5		-- ie: id 6 = first bag, 7 = 2nd bag ...
 				local size = DataStore:GetContainerSize(character, tabID)
-				local _, _, free, _ = DataStore:GetContainerInfo(character, tabID)
+				local link, _, free, _ = DataStore:GetContainerInfo(character, tabID)
 
-				local tabName = DataStore:GetPlayerBankTabName(character, tabID)
-				local tabIcon = DataStore:GetPlayerBankTabIcon(character, tabID)
+				local tabName, tabIcon
+				if hasBankTabs then
+					tabName = DataStore:GetPlayerBankTabName(character, tabID)
+					tabIcon = DataStore:GetPlayerBankTabIcon(character, tabID)
+				else
+					tabName = link or ""
+					tabIcon = link and DataStore:GetContainerIcon(character, tabID)
+				end
 				tt:AddDoubleLine(format("%s %s", Formatter.Texture18(tabIcon), tabName), FormatBagSlots(size, free))
 					
 					
